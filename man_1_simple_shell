@@ -1,0 +1,31 @@
+.TH SIMPLE_SHELL 1 "September 2026" "Holberton School" "Simple Shell Manual"
+.SH NAME
+simple_shell \- a simple UNIX command line interpreter
+.SH SYNOPSIS
+.B ./hsh
+.SH DESCRIPTION
+Simple Shell is a basic UNIX command line interpreter written in C.
+It reads commands from standard input and executes them.
+The shell can operate in interactive and non-interactive modes.
+.SH USAGE
+To start the shell in interactive mode:
+.PP
+.B ./hsh
+.PP
+Enter a command such as:
+.PP
+.B /bin/ls
+.PP
+To exit the shell, use:
+.PP
+.B exit
+.SH COMPILATION
+Compile the program using:
+.PP
+.B gcc -Wall -Werror -Wextra -pedantic -std=gnu89 *.c -o hsh
+.SH AUTHOR
+Harry Perez
+.br
+Student of Holberton Coding School
+.br
+Cohort 30
