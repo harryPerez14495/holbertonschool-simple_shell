@@ -2,16 +2,21 @@
 
 /**
  * main - Entry point for the simple shell
+ * @argc: Number of arguments
+ * @argv: Array of arguments
+ * @env: Environment variables
  *
  * Return: Always 0.
  */
-int main(void)
+int main(int argc, char **argv, char **env)
 {
 	char *line = NULL;
 	size_t len = 0;
 	ssize_t nread;
 	pid_t pid;
-	char *argv[2];
+	char *args[2];
+
+	(void)argc;
 
 	while (1)
 	{
@@ -29,17 +34,11 @@ int main(void)
 		if (nread > 0 && line[nread - 1] == '\n')
 			line[nread - 1] = '\0';
 
-		if (strcmp(line, "exit") == 0)
-		{
-			free(line);
-			return (0);
-		}
-
 		if (line[0] == '\0')
 			continue;
 
-		argv[0] = line;
-		argv[1] = NULL;
+		args[0] = line;
+		args[1] = NULL;
 
 		pid = fork();
 
@@ -52,14 +51,12 @@ int main(void)
 
 		if (pid == 0)
 		{
-			execve(argv[0], argv, NULL);
+			execve(args[0], args, env);
 			perror(argv[0]);
 			exit(127);
 		}
-		else
-		{
-			wait(NULL);
-		}
+
+		wait(NULL);
 	}
 
 	return (0);
