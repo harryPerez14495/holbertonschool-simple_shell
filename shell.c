@@ -105,6 +105,12 @@ int main(int argc, char **argv, char **env)
 		if (args[0] == NULL)
 			continue;
 
+		if (strcmp(args[0], "exit") == 0)
+		{
+			free(line);
+			return (0);
+		}
+
 		command = find_command(args[0]);
 
 		if (command == NULL)
