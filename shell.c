@@ -27,10 +27,12 @@ char *find_command(char *command)
 		return (NULL);
 
 	dir = strtok(path_copy, ":");
+
 	while (dir != NULL)
 	{
 		size = strlen(dir) + strlen(command) + 2;
 		full = malloc(size);
+
 		if (full == NULL)
 		{
 			free(path_copy);
@@ -109,6 +111,16 @@ int main(int argc, char **argv, char **env)
 		{
 			free(line);
 			return (0);
+		}
+
+		if (strcmp(args[0], "env") == 0)
+		{
+			for (i = 0; env[i] != NULL; i++)
+			{
+				write(STDOUT_FILENO, env[i], strlen(env[i]));
+				write(STDOUT_FILENO, "\n", 1);
+			}
+			continue;
 		}
 
 		command = find_command(args[0]);
