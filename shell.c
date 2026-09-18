@@ -91,7 +91,7 @@ int execute_command(char **args, char **env, char *program)
 	if (command == NULL)
 	{
 		fprintf(stderr, "%s: 1: %s: not found\n",
-			program, args[0]);
+				program, args[0]);
 		return (127);
 	}
 
@@ -125,7 +125,7 @@ int execute_command(char **args, char **env, char *program)
  * @env: environment variables
  * @program: program name
  *
- * Return: 1 to exit shell, 0 otherwise
+ * Return: command status, or -1 to exit shell
  */
 int process_line(char *line, char **env, char *program)
 {
@@ -137,7 +137,7 @@ int process_line(char *line, char **env, char *program)
 		return (0);
 
 	if (strcmp(args[0], "exit") == 0)
-		return (1);
+		return (-1);
 
 	if (strcmp(args[0], "env") == 0)
 	{
@@ -145,9 +145,7 @@ int process_line(char *line, char **env, char *program)
 		return (0);
 	}
 
-	execute_command(args, env, program);
-
-	return (0);
+	return (execute_command(args, env, program));
 }
 
 /**
@@ -156,13 +154,15 @@ int process_line(char *line, char **env, char *program)
  * @argv: array of arguments
  * @env: environment variables
  *
- * Return: Always 0
+ * Return: status of last command
  */
 int main(int argc, char **argv, char **env)
 {
 	char *line = NULL;
 	size_t len = 0;
 	ssize_t nread;
+	int status = 0;
+	int result;
 
 	(void)argc;
 
@@ -179,10 +179,14 @@ int main(int argc, char **argv, char **env)
 		if (nread > 0 && line[nread - 1] == '\n')
 			line[nread - 1] = '\0';
 
-		if (process_line(line, env, argv[0]) == 1)
+		result = process_line(line, env, argv[0]);
+
+		if (result == -1)
 			break;
+
+		status = result;
 	}
 
 	free(line);
-	return (0);
+	return (status);
 }
