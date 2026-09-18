@@ -18,6 +18,7 @@ char *build_path(char *dir, char *command)
 		return (NULL);
 
 	sprintf(full, "%s/%s", dir, command);
+
 	if (access(full, X_OK) == 0)
 		return (full);
 

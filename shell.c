@@ -10,11 +10,15 @@ char *get_path(char **env)
 {
 	int i;
 
+	if (env == NULL)
+		return (NULL);
+
 	for (i = 0; env[i] != NULL; i++)
 	{
 		if (strncmp(env[i], "PATH=", 5) == 0)
 			return (env[i] + 5);
 	}
+
 	return (NULL);
 }
 
@@ -23,20 +27,25 @@ char *get_path(char **env)
  * @command: command to find
  * @env: environment variables
  *
- * Return: full path to command, or NULL
+ * Return: full path to command or NULL
  */
 char *find_command(char *command, char **env)
 {
-	char *path, *copy, *dir, *next, *full;
+	char *path, *copy, *dir, *full;
+
+	if (command == NULL)
+		return (NULL);
 
 	if (strchr(command, '/'))
 	{
 		if (access(command, X_OK) == 0)
 			return (strdup(command));
+
 		return (NULL);
 	}
 
 	path = get_path(env);
+
 	if (path == NULL || *path == '\0')
 		return (NULL);
 
@@ -44,20 +53,19 @@ char *find_command(char *command, char **env)
 	if (copy == NULL)
 		return (NULL);
 
-	dir = copy;
+	dir = strtok(copy, ":");
+
 	while (dir != NULL)
 	{
-		next = strchr(dir, ':');
-		if (next != NULL)
-			*next++ = '\0';
+		full = build_path(dir, command);
 
-		full = build_path(*dir ? dir : ".", command);
 		if (full != NULL)
 		{
 			free(copy);
 			return (full);
 		}
-		dir = next;
+
+		dir = strtok(NULL, ":");
 	}
 
 	free(copy);
@@ -70,25 +78,27 @@ char *find_command(char *command, char **env)
  * @env: environment variables
  * @program: program name
  *
- * Return: 0 on success, 1 on failure
+ * Return: exit status of command
  */
 int execute_command(char **args, char **env, char *program)
 {
 	char *command;
 	pid_t pid;
+	int status;
 
 	command = find_command(args[0], env);
+
 	if (command == NULL)
 	{
 		fprintf(stderr, "%s: 1: %s: not found\n",
 			program, args[0]);
-		return (0);
+		return (127);
 	}
 
 	pid = fork();
+
 	if (pid == -1)
 	{
-		perror("fork");
 		free(command);
 		return (1);
 	}
@@ -100,9 +110,13 @@ int execute_command(char **args, char **env, char *program)
 		exit(127);
 	}
 
-	wait(NULL);
+	waitpid(pid, &status, 0);
 	free(command);
-	return (0);
+
+	if (WIFEXITED(status))
+		return (WEXITSTATUS(status));
+
+	return (1);
 }
 
 /**
@@ -132,6 +146,7 @@ int process_line(char *line, char **env, char *program)
 	}
 
 	execute_command(args, env, program);
+
 	return (0);
 }
 
@@ -157,6 +172,7 @@ int main(int argc, char **argv, char **env)
 			write(STDOUT_FILENO, "($) ", 4);
 
 		nread = getline(&line, &len, stdin);
+
 		if (nread == -1)
 			break;
 
