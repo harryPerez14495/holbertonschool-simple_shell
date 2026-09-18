@@ -1,12 +1,32 @@
 #include "shell.h"
 
 /**
+ * get_path - gets PATH value from environment
+ * @env: environment variables
+ *
+ * Return: PATH value or NULL
+ */
+char *get_path(char **env)
+{
+	int i;
+
+	for (i = 0; env[i] != NULL; i++)
+	{
+		if (strncmp(env[i], "PATH=", 5) == 0)
+			return (env[i] + 5);
+	}
+
+	return (NULL);
+}
+
+/**
  * find_command - finds a command in PATH
  * @command: command to find
+ * @env: environment variables
  *
  * Return: full path to command, or NULL
  */
-char *find_command(char *command)
+char *find_command(char *command, char **env)
 {
 	char *path, *path_copy, *dir, *full;
 
@@ -17,8 +37,8 @@ char *find_command(char *command)
 		return (NULL);
 	}
 
-	path = getenv("PATH");
-	if (path == NULL)
+	path = get_path(env);
+	if (path == NULL || *path == '\0')
 		return (NULL);
 
 	path_copy = strdup(path);
@@ -47,14 +67,14 @@ char *find_command(char *command)
  * @env: environment variables
  * @program: program name
  *
- * Return: 0 on success, 1 on fork failure
+ * Return: 0 on success, 1 on failure
  */
 int execute_command(char **args, char **env, char *program)
 {
 	char *command;
 	pid_t pid;
 
-	command = find_command(args[0]);
+	command = find_command(args[0], env);
 	if (command == NULL)
 	{
 		fprintf(stderr, "%s: 1: %s: not found\n",
@@ -73,7 +93,6 @@ int execute_command(char **args, char **env, char *program)
 	if (pid == 0)
 	{
 		execve(command, args, env);
-		perror(program);
 		free(command);
 		exit(127);
 	}
@@ -89,13 +108,14 @@ int execute_command(char **args, char **env, char *program)
  * @env: environment variables
  * @program: program name
  *
- * Return: 1 to exit shell, 0 to continue
+ * Return: 1 to exit shell, 0 otherwise
  */
 int process_line(char *line, char **env, char *program)
 {
 	char *args[64];
 
 	split_line(line, args);
+
 	if (args[0] == NULL)
 		return (0);
 
