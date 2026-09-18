@@ -1,7 +1,7 @@
 #include "shell.h"
 
 /**
- * get_path - gets PATH value from environment
+ * get_path - gets PATH from environment
  * @env: environment variables
  *
  * Return: PATH value or NULL
@@ -15,7 +15,6 @@ char *get_path(char **env)
 		if (strncmp(env[i], "PATH=", 5) == 0)
 			return (env[i] + 5);
 	}
-
 	return (NULL);
 }
 
@@ -28,7 +27,7 @@ char *get_path(char **env)
  */
 char *find_command(char *command, char **env)
 {
-	char *path, *path_copy, *dir, *full;
+	char *path, *copy, *dir, *next, *full;
 
 	if (strchr(command, '/'))
 	{
@@ -41,23 +40,27 @@ char *find_command(char *command, char **env)
 	if (path == NULL || *path == '\0')
 		return (NULL);
 
-	path_copy = strdup(path);
-	if (path_copy == NULL)
+	copy = strdup(path);
+	if (copy == NULL)
 		return (NULL);
 
-	dir = strtok(path_copy, ":");
+	dir = copy;
 	while (dir != NULL)
 	{
-		full = build_path(dir, command);
+		next = strchr(dir, ':');
+		if (next != NULL)
+			*next++ = '\0';
+
+		full = build_path(*dir ? dir : ".", command);
 		if (full != NULL)
 		{
-			free(path_copy);
+			free(copy);
 			return (full);
 		}
-		dir = strtok(NULL, ":");
+		dir = next;
 	}
 
-	free(path_copy);
+	free(copy);
 	return (NULL);
 }
 
@@ -133,10 +136,10 @@ int process_line(char *line, char **env, char *program)
 }
 
 /**
- * main - Entry point for the simple shell
- * @argc: Number of arguments
- * @argv: Array of arguments
- * @env: Environment variables
+ * main - entry point for the simple shell
+ * @argc: number of arguments
+ * @argv: array of arguments
+ * @env: environment variables
  *
  * Return: Always 0
  */
